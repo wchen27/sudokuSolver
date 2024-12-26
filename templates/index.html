@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sudoku Input</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        // JavaScript to ensure only one digit between 1-9 is entered and auto-focus to next input
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('.sudoku-grid input');
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value;
+
+                    // Remove any non-digit characters
+                    value = value.replace(/[^1-9]/g, '');
+
+                    if (value.length > 1) {
+                        value = value.slice(0, 1);
+                    }
+
+                    e.target.value = value;
+
+                    if (value >= 1 && value <= 9) {
+                        // Move to the next input if the current input is valid
+                        const nextInput = inputs[index + 1];
+                        if (nextInput) {
+                            nextInput.focus();
+                        }
+                    }
+                });
+
+                // Allow backspace to move to the previous input
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && e.target.value === '') {
+                        const prevInput = inputs[index - 1];
+                        if (prevInput) {
+                            prevInput.focus();
+                        }
+                    }
+                });
+            });
+
+            // Function to clear the Sudoku grid
+            window.clearGrid = function() {
+                inputs.forEach(input => {
+                    input.value = '';
+                });
+                // Set focus to the first input field
+                if (inputs.length > 0) {
+                    inputs[0].focus();
+                }
+                // Remove any success or failure messages
+                const successMessage = document.querySelector('.success');
+                if (successMessage) {
+                    successMessage.remove();
+                }
+                const failureMessage = document.querySelector('.failure');
+                if (failureMessage) {
+                    failureMessage.remove();
+                }
+            };
+        });
+    </script>
+</head>
+<body>
+    <h1>Sudoku Solver</h1>
+
+    {% if success == True %}
+        <p class="success">Sudoku grid solved!</p>
+    {% endif %}
+    {% if success == False %}
+        <p class="failure">Failed to solve sudoku.</p>
+    {% endif %}
+
+    <form method="POST">
+        <table class="sudoku-grid">
+            {% for row in range(9) %}
+                <tr>
+                    {% for col in range(9) %}
+                        {% set index = row * 9 + col %}
+                        {% if sudoku_board %}
+                            {% set char = sudoku_board[index] %}
+                            {% if char != '.' and char|int >=1 and char|int <=9 %}
+                                <td>
+                                    <input 
+                                        type="number" 
+                                        name="cell-{{ row }}-{{ col }}" 
+                                        id="cell-{{ row }}-{{ col }}"
+                                        min="1" 
+                                        max="9" 
+                                        value="{{ char }}"
+                                        aria-label="Row {{ row + 1 }} Column {{ col + 1 }}"
+                                    >
+                                </td>
+                            {% else %}
+                                <td>
+                                    <input 
+                                        type="number" 
+                                        name="cell-{{ row }}-{{ col }}" 
+                                        id="cell-{{ row }}-{{ col }}"
+                                        min="1" 
+                                        max="9" 
+                                        aria-label="Row {{ row + 1 }} Column {{ col + 1 }}"
+                                    >
+                                </td>
+                            {% endif %}
+                        {% else %}
+                            <td>
+                                <input 
+                                    type="number" 
+                                    name="cell-{{ row }}-{{ col }}" 
+                                    id="cell-{{ row }}-{{ col }}"
+                                    min="1" 
+                                    max="9" 
+                                    aria-label="Row {{ row + 1 }} Column {{ col + 1 }}"
+                                >
+                            </td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+        <div class="button-container">
+            <button type="submit">Submit</button>
+            <button type="button" onclick="clearGrid()">Clear</button>
+        </div>
+    </form>
+</body>
+</html>
